@@ -25,5 +25,5 @@ Just plain Node.js.
 
 ## Why?
 
-Actually this project is a Homework Assignment for a [Pirple.com](pirple.com) course.
+Actually this project is a Homework Assignment for a [Pirple.com](https://pirple.com) course.
 But I have decided to publsh it here as a showcase.
