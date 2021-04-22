@@ -65,7 +65,13 @@ utils.processRequest = function (req, res, options) {
       typeof options.services === 'object' ? options.services : [];
     let choosenService = null;
     for (const service of services) {
-      if (service.route.test(request.path)) {
+      const matchResult = service.route.exec(request.path);
+      if (matchResult) {
+        if (matchResult.groups) {
+          request.urlArgs = matchResult.groups;
+        } else {
+          request.urlArgs = null;
+        }
         choosenService = service.handler;
         break;
       }

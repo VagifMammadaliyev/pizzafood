@@ -17,9 +17,13 @@ app.init = function () {
     );
   });
 
-  server.route(/users\/\w+\/create/, function (req, res) {
-    res(200, { message: 'Regex route works' });
-  });
+  server.route(
+    /users\/(?<userId>\d+)\/(?<action>(create|edit|delete))/,
+    function (req, res) {
+      res(200, { message: 'Regex route works', urlargs: req.urlArgs });
+    }
+  );
+  server.route(/users/);
 
   server.serve();
 };
