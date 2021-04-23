@@ -22,6 +22,7 @@ exc.NotFound = function (detail) {
 };
 
 exc.InvalidData = function (errors, strToArr = true) {
+  this.statusCode = 422;
   this.errorData = {
     errors: null,
     messages: null,
@@ -68,13 +69,14 @@ exc.InvalidData = function (errors, strToArr = true) {
 };
 
 exc.ServerError = function (detail) {
+  this.statusCode = 500;
   if (typeof detail !== 'string') {
     this.detail = 'Server error';
   } else {
     this.detail = detail;
   }
   this.serialize = function () {
-    return { detail: detail };
+    return { detail: this.detail };
   };
 };
 

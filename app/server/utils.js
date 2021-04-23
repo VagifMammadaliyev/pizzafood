@@ -1,5 +1,6 @@
 const url = require('url');
 const StringDecoder = require('string_decoder').StringDecoder;
+const errors = require('../core/exceptions');
 
 var utils = {};
 
@@ -76,22 +77,50 @@ utils.processRequest = function (req, res, options) {
         break;
       }
     }
-    if (!choosenService) {
-      choosenService = options.handlers[404];
-    }
-    choosenService(request, function (status, response, headers) {
-      status = typeof status == 'number' ? status : 200;
+    try {
       res.setHeader('Content-Type', 'application/json');
-      // respect user's headers too
-      if (typeof headers === 'object') {
-        for (const [headerKey, headerValue] of Object.entries(headers)) {
-          res.setHeader(headerKey, headerValue);
-        }
+      if (!choosenService) {
+        throw new errors.NotFound();
       }
-      res.writeHead(status);
-      res.end(typeof response == 'object' ? JSON.stringify(response) : null);
-    });
+      choosenService(request, function (status, response, headers) {
+        status = typeof status == 'number' ? status : 200;
+        // respect user's headers too
+        if (typeof headers === 'object') {
+          for (const [headerKey, headerValue] of Object.entries(headers)) {
+            res.setHeader(headerKey, headerValue);
+          }
+        }
+        res.writeHead(status);
+        res.end(typeof response === 'object' ? JSON.stringify(response) : '');
+      });
+    } catch (err) {
+      options.exceptionHandler(req, res, err);
+    }
   });
+};
+
+/**
+ *  Default exception handler
+ */
+utils.exceptionHandler = function (req, res, err) {
+  if (
+    typeof err.serialize === 'function' &&
+    typeof err.statusCode === 'number'
+  ) {
+    // this block will handle all
+    // exceptions that are defined like
+    // core/exceptions. If it is enough for
+    // user, then there is no sense in defining
+    // custom exception handler
+    res.writeHead(err.statusCode);
+    const errorData = err.serialize();
+    res.end(typeof errorData === 'object' ? JSON.stringify(errorData) : '');
+  } else {
+    console.error(err);
+    const serverError = new errors.ServerError();
+    res.writeHead(serverError.statusCode);
+    res.end(JSON.stringify(serverError.serialize()));
+  }
 };
 
 module.exports = utils;

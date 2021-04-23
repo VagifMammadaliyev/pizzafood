@@ -6,11 +6,7 @@ var server = {};
 
 server._middlewares = [];
 server._services = [];
-server._handlers = {
-  404: function (request, response) {
-    response(404, { detail: 'Not found' });
-  },
-};
+server._exceptionHandler = null;
 
 server._getListener = function (protocol) {
   return function (req, res) {
@@ -20,6 +16,9 @@ server._getListener = function (protocol) {
       protocol: protocol,
       port: server.config[`${protocol}Port`],
       hostname: server.config.hostname,
+      exceptionHandler: server._exceptionHandler
+        ? server._exceptionHandler
+        : serverUtils.exceptionHandler,
     });
   };
 };
@@ -28,8 +27,10 @@ server.use = function (middleware) {
   server._middlewares.push(middleware);
 };
 
-server.handler = function (status, handlerFunction) {
-  server._handlers[status] = handlerFunction;
+server.setExceptionHandler = function (handlerFunction) {
+  // if this function not called default exception handler will be used.
+  // default exception handler is defined in server/utils
+  server._exceptionHandler = handlerFunction;
 };
 
 server.route = function (routeRegex, handlerFunction) {
