@@ -1,10 +1,10 @@
 const server = require('./server');
-const config = require('./core/config');
+const core = require('./core');
 
 var app = {};
 
 app.init = function () {
-  server.init(config);
+  server.init(core.config);
   server.serve();
 };
 

@@ -12,7 +12,6 @@ server._getListener = function (protocol) {
   return function (req, res) {
     serverUtils.processRequest(req, res, {
       services: server._services,
-      handlers: server._handlers,
       protocol: protocol,
       port: server.config[`${protocol}Port`],
       hostname: server.config.hostname,
@@ -54,8 +53,6 @@ server.init = function (config) {
     );
   }
 };
-
-server.setDefaultHandlers = function () {};
 
 server.serve = function () {
   if (server._httpServer) {
