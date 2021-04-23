@@ -65,15 +65,17 @@ utils.processRequest = function (req, res, options) {
     const services =
       typeof options.services === 'object' ? options.services : [];
     let choosenService = null;
+    let allowedMethods = null;
     for (const service of services) {
       const matchResult = service.route.exec(request.path);
       if (matchResult) {
         if (matchResult.groups) {
-          request.urlArgs = matchResult.groups;
+          request.args = matchResult.groups;
         } else {
-          request.urlArgs = null;
+          request.args = null;
         }
         choosenService = service.handler;
+        allowedMethods = service.allowedMethods;
         break;
       }
     }
@@ -81,6 +83,12 @@ utils.processRequest = function (req, res, options) {
       res.setHeader('Content-Type', 'application/json');
       if (!choosenService) {
         throw new errors.NotFound();
+      } else if (
+        Array.isArray(allowedMethods) &&
+        allowedMethods.length &&
+        allowedMethods.indexOf(request.method) < 0
+      ) {
+        throw new errors.MethodNotAllowed(request.method);
       }
       choosenService(request, function (status, response, headers) {
         status = typeof status == 'number' ? status : 200;

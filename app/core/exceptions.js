@@ -21,6 +21,18 @@ exc.NotFound = function (detail) {
   };
 };
 
+exc.MethodNotAllowed = function (badMethod) {
+  this.statusCode = 405;
+  this.badMethod = badMethod;
+  this.errorMessage =
+    typeof this.badMethod === 'string'
+      ? `Method "${this.badMethod}" is not allowed`
+      : `Method is not allowed`;
+  this.serialize = function () {
+    return { detail: this.errorMessage };
+  };
+};
+
 exc.InvalidData = function (errors, strToArr = true) {
   this.statusCode = 422;
   this.errorData = {

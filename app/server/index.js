@@ -33,10 +33,13 @@ server.setExceptionHandler = function (handlerFunction) {
   server._exceptionHandler = handlerFunction;
 };
 
-server.route = function (routeRegex, handlerFunction) {
+server.route = function (routeRegex, allowedMethods, handlerFunction) {
   server._services.push({
     route: routeRegex,
     handler: handlerFunction,
+    allowedMethods: allowedMethods.map(function (methoName) {
+      return methoName.toUpperCase();
+    }),
   });
 };
 
