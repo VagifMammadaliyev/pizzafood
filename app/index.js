@@ -23,8 +23,6 @@ app.init = function () {
       res(200, { message: 'Regex route works', urlargs: req.urlArgs });
     }
   );
-  server.route(/users/);
-
   server.serve();
 };
 

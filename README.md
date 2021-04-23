@@ -8,7 +8,7 @@ Application provides API for registering users.
 
 - Users can see all available pizzas.
 - Users can add pizzas to their shopping carts and then pay for them.
-- _Only logged in users can user their carts and place order._
+- _Only logged in users can user their carts and place orders._
 - After an order is placed, users are able to complete the payment and then receive mail with receipt.
 
 ### Payment

@@ -1,0 +1,81 @@
+var exc = {};
+
+/**
+ * These are core exceptions, user defined exceptions
+ * should go in somewhere else.
+ *
+ * All core exceptions have `serialize` method which
+ * user may call in order to get a nice error JSON.
+ */
+
+exc.NotFound = function (detail) {
+  if (typeof detail !== 'string') {
+    detail = 'Not found';
+  }
+  this.statusCode = 404;
+  this.detail = detail;
+  this.serialize = function () {
+    return {
+      detail: this.detail,
+    };
+  };
+};
+
+exc.InvalidData = function (errors, strToArr = true) {
+  this.errorData = {
+    errors: null,
+    messages: null,
+  };
+
+  // if errors is just plain string or a number
+  // then add it to an array no matter what
+  // strToAttr's value is
+  if (typeof errors === 'string' || typeof errors === 'number') {
+    errors = [errors];
+  }
+
+  if (Array.isArray(errors)) {
+    // caller wanted us to display
+    // common error messages as an array.
+    // Because API client may need to show some
+    // text as an alert or something.
+    this.errorData.messages = errors;
+  } else {
+    // errors should be iterable for
+    // this code to work
+    // TODO: Check if we have done enough
+    //       validation to reach this point
+    this.errorData.errors = [];
+    for (let [errorKey, errorValue] of Object.entries(errors)) {
+      // if errorValue is just a plain string
+      // then push it into a one element array
+      // NOTE: caller may explicitly do not want this
+      //       by providing strToArr as false
+      if (typeof errorValue === 'string' && strToArr) {
+        errorValue = [errorValue];
+      }
+      // in all other cases just render errorValue itself
+      this.errorData.errors.push({
+        field: errorKey,
+        detail: errorValue,
+      });
+    }
+  }
+
+  this.serialize = function () {
+    return this.errorData;
+  };
+};
+
+exc.ServerError = function (detail) {
+  if (typeof detail !== 'string') {
+    this.detail = 'Server error';
+  } else {
+    this.detail = detail;
+  }
+  this.serialize = function () {
+    return { detail: detail };
+  };
+};
+
+module.exports = exc;
