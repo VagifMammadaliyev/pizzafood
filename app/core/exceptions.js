@@ -92,4 +92,48 @@ exc.ServerError = function (detail) {
   };
 };
 
+exc.UnsupportedMediaType = function (goodMediaTypes) {
+  if (typeof goodMediaTypes === 'string') {
+    this.goodMediaTypes = [goodMediaTypes];
+  } else if (Array.isArray(goodMediaTypes)) {
+    this.goodMediaTypes = goodMediaTypes;
+  } else {
+    this.goodMediaTypes = null;
+  }
+  this.statusCode = 415;
+  this.serialize = function () {
+    if (this.goodMediaTypes) {
+      return {
+        detail: `Allowed media type(s): ${this.goodMediaTypes.join(', ')}`,
+      };
+    } else {
+      return {
+        detail: 'Unsupported media type',
+      };
+    }
+  };
+};
+
+exc.NotAcceptable = function (goodMediaTypes) {
+  if (typeof goodMediaTypes === 'string') {
+    this.goodMediaTypes = [goodMediaTypes];
+  } else if (Array.isArray(goodMediaTypes)) {
+    this.goodMediaTypes = goodMediaTypes;
+  } else {
+    this.goodMediaTypes = null;
+  }
+  this.statusCode = 406;
+  this.serialize = function () {
+    if (this.goodMediaTypes) {
+      return {
+        detail: `Acceptable media type(s): ${this.goodMediaTypes.join(', ')}`,
+      };
+    } else {
+      return {
+        detail: 'Unacceptable media type',
+      };
+    }
+  };
+};
+
 module.exports = exc;
