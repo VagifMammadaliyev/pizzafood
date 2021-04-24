@@ -90,7 +90,10 @@ utils.processRequest = function (req, res, options) {
       ) {
         throw new errors.MethodNotAllowed(request.method);
       }
-      choosenService(request, function (status, response, headers) {
+      // this function will be used as a callback for services.
+      // service must call this function at some point to finalize the request
+      // and respond to client.
+      const responseHandler = function (status, response, headers) {
         status = typeof status == 'number' ? status : 200;
         // respect user's headers too
         if (typeof headers === 'object') {
@@ -100,7 +103,24 @@ utils.processRequest = function (req, res, options) {
         }
         res.writeHead(status);
         res.end(typeof response === 'object' ? JSON.stringify(response) : '');
-      });
+      };
+      const _middlewareFinalizer = function (_req, _res, _cb) {
+        // ignore _res argument as services must not use low level API
+        // for writing response, instead they must use _cb
+        // which must be responseHandler defined above if everything goes well
+        choosenService(_req, _cb);
+      };
+      const middlewares = options.middlewares;
+      // middlewares chained before server initializes,
+      // so we can be sure about chain logic and just push
+      // middleware finalizer to complete the chain
+      if (middlewares.length) {
+        middlewares[middlewares.length - 1].next = _middlewareFinalizer;
+        // call first middleware to start chain
+        middlewares[0].process(request, res, responseHandler);
+      } else {
+        choosenService(request, responseHandler);
+      }
     } catch (err) {
       options.exceptionHandler(req, res, err);
     }

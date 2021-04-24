@@ -13,6 +13,7 @@ server._getListener = function (protocol) {
     serverUtils.processRequest(req, res, {
       services: server._services,
       protocol: protocol,
+      middlewares: server._middlewares,
       port: server.config[`${protocol}Port`],
       hostname: server.config.hostname,
       exceptionHandler: server._exceptionHandler
@@ -23,7 +24,29 @@ server._getListener = function (protocol) {
 };
 
 server.use = function (middleware) {
-  server._middlewares.push(middleware);
+  if (Array.isArray(middleware)) {
+    for (const _middleware of middleware) {
+      server.use(_middleware);
+    }
+  } else {
+    // chain middlewares
+    if (server._middlewares.length) {
+      // define a function to be called as next.
+      // this is a much easier than handling next as a class instance
+      // with process function
+      server._middlewares[server._middlewares.length - 1].next = function (
+        request,
+        responseWriter,
+        responseHandler
+      ) {
+        middleware.process(request, responseWriter, responseHandler);
+      };
+      // we do it here once, when application starts as opposed
+      // to "middleware finalizer logic". Because that "logic"
+      // depends on some context with "req", "res" objects.
+    }
+    server._middlewares.push(middleware);
+  }
 };
 
 server.setExceptionHandler = function (handlerFunction) {
