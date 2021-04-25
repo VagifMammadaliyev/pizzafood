@@ -1,8 +1,18 @@
+const path = require('path');
+
 var config = {
-  prod: {},
+  prod: {
+    httpPort: process.env.PIZAAFOOD_HTTP_PORT,
+    httpsPort: process.env.PIZAAFOOD_HTTPS_PORT,
+    dataDirectory: process.env.PIZAAFOOD_DATADIR,
+    secretKey: process.env.PIZAAFOOD_SECRET_KEY,
+  },
   dev: {
     httpPort: 80,
     httpsPort: false,
+    dataDirectory: path.join(__dirname, '../.db'),
+    secretKey:
+      '506543c2f3698743dd21608ca357f9c5a0c10ae158819be6c8cfdfc650f1d594',
   },
 };
 
