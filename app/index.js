@@ -2,7 +2,7 @@ const server = require('./server');
 const core = require('./core');
 const middlewares = require('./middlewares');
 
-const users = require('./models/users');
+const models = require('./models');
 
 var app = {};
 
@@ -18,7 +18,7 @@ app.init = function () {
     res(200, { detail: 'OK' });
   });
   server.route(/^users$/, ['POST'], function (req, res) {
-    let user = new users.User(
+    let user = new models.User(
       req.data.name,
       req.data.email,
       req.data.address,
