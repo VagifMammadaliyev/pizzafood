@@ -1,6 +1,7 @@
 const server = require('./server');
 const core = require('./core');
 const middlewares = require('./middlewares');
+const services = require('./services');
 
 var app = {};
 
@@ -12,9 +13,11 @@ app.init = function () {
     })
   );
   server.init(core.config);
-  server.route(/^health-check$/, ['GET'], function (req, res) {
-    res(200, { detail: 'OK' });
-  });
+
+  for (const service of services) {
+    server.route(service.route, service.methods, service);
+  }
+
   server.serve();
 };
 
