@@ -2,8 +2,6 @@ const server = require('./server');
 const core = require('./core');
 const middlewares = require('./middlewares');
 
-const users = require('./models/users');
-
 var app = {};
 
 app.init = function () {
@@ -16,18 +14,6 @@ app.init = function () {
   server.init(core.config);
   server.route(/^health-check$/, ['GET'], function (req, res) {
     res(200, { detail: 'OK' });
-  });
-  server.route(/^users$/, ['POST'], function (req, res) {
-    let user = new users.User(
-      req.data.name,
-      req.data.email,
-      req.data.address,
-      req.data.password
-    );
-    user.validate();
-    user.save(function () {
-      res(201, user.toJson());
-    });
   });
   server.serve();
 };

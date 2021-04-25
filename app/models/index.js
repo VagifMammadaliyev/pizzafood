@@ -1,3 +1,6 @@
-var repo = {};
+const users = require('./users');
 
-module.exports = repo;
+var models = {};
+models.User = users.User;
+
+module.exports = models;

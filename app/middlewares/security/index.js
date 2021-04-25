@@ -3,9 +3,9 @@ const exc = require('../../core/exceptions');
 var security = {};
 
 security.AcceptJsonOnly = function () {
-  this.process = function (req, res, exc) {
+  this.process = function (req, res, e) {
     if (!req.isJson) {
-      throw new exc.UnsupportedMediaType('application/json');
+      e(new exc.UnsupportedMediaType('application/json'));
     } else {
       this.next(req, res, exc);
     }
@@ -13,9 +13,9 @@ security.AcceptJsonOnly = function () {
 };
 
 security.RequireOnlyJson = function () {
-  this.process = function (req, res, exc) {
+  this.process = function (req, res, e) {
     if (req.headers.accept != 'application/json') {
-      throw new exc.NotAcceptable('application/json');
+      e(new exc.NotAcceptable('application/json'));
     } else {
       this.next(req, res, exc);
     }
@@ -23,7 +23,7 @@ security.RequireOnlyJson = function () {
 };
 
 security.Common = function () {
-  this.process = function (req, res, exc) {
+  this.process = function (req, res, e) {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
     res.setHeader('X-Content-Type-Options', 'nosniff');
