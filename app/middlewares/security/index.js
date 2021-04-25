@@ -4,7 +4,7 @@ var security = {};
 
 security.AcceptJsonOnly = function () {
   this.process = function (req, resWriter, resHandler) {
-    if (!req.isJsonContentType) {
+    if (!req.isJson) {
       throw new exc.UnsupportedMediaType('application/json');
     } else {
       this.next(req, resWriter, resHandler);
