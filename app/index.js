@@ -25,9 +25,12 @@ app.init = function () {
       req.data.password
     );
     user.validate();
-    user.save(function () {
-      res(201, user.toJson());
-    });
+    // user
+    //   .save()
+    //   .then(res(201, user.toJson()))
+    //   .catch((err) => {
+    //     // do something with error here...
+    //   });
   });
   server.serve();
 };

@@ -4,35 +4,41 @@ const data = require('../data');
 
 var users = {};
 
-users.load = function (email, callback) {
-  data.read('users', email, function (err, data) {
-    if (!err && data) {
-      const user = new users.User(data.name, data.email, data.address);
-      user.hashedPassword = data.hashedPassword;
-      callback(user);
-    } else {
-      throw err;
-    }
+users.load = function (email) {
+  return new Promise((resolve, reject) => {
+    data.read('users', email, function (err, data) {
+      if (!err && data) {
+        const user = new users.User(data.name, data.email, data.address);
+        user.hashedPassword = data.hashedPassword;
+        resolve(user);
+      } else {
+        reject(err);
+      }
+    });
   });
 };
 
-users.delete = function (email, callback) {
-  data.delete('users', email, function (err) {
-    if (!err) {
-      callback();
-    } else {
-      throw err;
-    }
+users.delete = function (email) {
+  return new Promise((resolve, reject) => {
+    data.delete('users', email, function (err) {
+      if (!err) {
+        resolve();
+      } else {
+        reject(err);
+      }
+    });
   });
 };
 
-users.update = function (user, callback) {
-  data.update('users', user.email, user.prepare(), function (err) {
-    if (!err) {
-      callback();
-    } else {
-      throw err;
-    }
+users.update = function (user) {
+  return new Promise((resolve, reject) => {
+    data.update('users', user.email, user.prepare(), function (err) {
+      if (!err) {
+        resolve();
+      } else {
+        reject(err);
+      }
+    });
   });
 };
 
@@ -106,14 +112,16 @@ users.User = function (name, email, address, rawPassword) {
     }
   };
 
-  this.save = function (callback) {
-    this.setPassword(this._password);
-    data.create('users', this.email, this.prepare(), function (err) {
-      if (!err) {
-        callback();
-      } else {
-        throw err;
-      }
+  this.save = function () {
+    return new Promise((resolve, reject) => {
+      this.setPassword(this._password);
+      data.create('users', this.email, this.prepare(), function (err) {
+        if (!err) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
     });
   };
 
