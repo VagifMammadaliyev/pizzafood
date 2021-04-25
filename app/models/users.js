@@ -108,7 +108,7 @@ users.User = function (name, email, address, rawPassword) {
     }
 
     if (Object.keys(errors).length !== 0) {
-      throw new exc.InvalidData(errors);
+      return new exc.InvalidData(errors);
     }
   };
 
