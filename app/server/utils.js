@@ -43,6 +43,9 @@ utils.cookRequestData = function (method, parsedUrl, headers, content) {
     isJson: isJson,
     isJsonContentType: isJsonContentType,
     data: jsonData,
+    // middlware helping properties
+    isNotFoundError: false,
+    isMethodNotAllowedError: false,
   };
 };
 
@@ -79,50 +82,65 @@ utils.processRequest = function (req, res, options) {
         break;
       }
     }
-    try {
-      res.setHeader('Content-Type', 'application/json');
-      if (!choosenService) {
-        throw new errors.NotFound();
-      } else if (
-        Array.isArray(allowedMethods) &&
-        allowedMethods.length &&
-        allowedMethods.indexOf(request.method) < 0
-      ) {
-        throw new errors.MethodNotAllowed(request.method);
-      }
-      // this function will be used as a callback for services.
-      // service must call this function at some point to finalize the request
-      // and respond to client.
-      const responseHandler = function (status, response, headers) {
-        status = typeof status == 'number' ? status : 200;
-        // respect user's headers too
-        if (typeof headers === 'object') {
-          for (const [headerKey, headerValue] of Object.entries(headers)) {
-            res.setHeader(headerKey, headerValue);
-          }
+    res.setHeader('Content-Type', 'application/json');
+    if (!choosenService) {
+      // define a new choosenService.
+      // thus we have solved a problem with middlewares.
+      // not 404 and method not allowed (check below) exceptions
+      // will pass through all middlewares before responding
+      // with error to a client
+      utils.set404DetailsOnRequest(request);
+      choosenService = function (req, res, exc) {
+        exc(new errors.NotFound());
+      };
+    } else if (
+      Array.isArray(allowedMethods) &&
+      allowedMethods.length &&
+      allowedMethods.indexOf(request.method) < 0
+    ) {
+      utils.set405DetailsOnRequest(request);
+      choosenService = function (request, res, exc) {
+        exc(new errors.MethodNotAllowed(req.method));
+      };
+    }
+    // this function will be used as a callback for services.
+    // service must call this function at some point to finalize the request
+    // and respond to client.
+    const responseHandler = function (status, response, headers) {
+      status = typeof status == 'number' ? status : 200;
+      // respect user's headers too
+      if (typeof headers === 'object') {
+        for (const [headerKey, headerValue] of Object.entries(headers)) {
+          res.setHeader(headerKey, headerValue);
         }
-        res.writeHead(status);
-        res.end(typeof response === 'object' ? JSON.stringify(response) : '');
-      };
-      const _middlewareFinalizer = function (_req, _res, _cb) {
-        // ignore _res argument as services must not use low level API
-        // for writing response, instead they must use _cb
-        // which must be responseHandler defined above if everything goes well
-        choosenService(_req, _cb);
-      };
-      const middlewares = options.middlewares;
-      // middlewares chained before server initializes,
-      // so we can be sure about chain logic and just push
-      // middleware finalizer to complete the chain
-      if (middlewares.length) {
-        middlewares[middlewares.length - 1].next = _middlewareFinalizer;
-        // call first middleware to start chain
-        middlewares[0].process(request, res, responseHandler);
-      } else {
-        choosenService(request, responseHandler);
       }
-    } catch (err) {
+      res.writeHead(status);
+      res.end(typeof response === 'object' ? JSON.stringify(response) : '');
+    };
+    // exception handler callback that will be passed to
+    // service. Service can call this callback in order to response
+    // with a nice error to API client. Service may omit this callback
+    // argument in service definition (due to how JS works).
+    // NOTE: this function may be used by a middleware too
+    const exceptionHandler = function (err) {
       options.exceptionHandler(req, res, err);
+    };
+    const _middlewareFinalizer = function (_req, _res, _exc) {
+      // ignore _res argument as services must not use low level API
+      // for writing response, instead they must use _cb
+      // which must be responseHandler defined above if everything goes well
+      choosenService(_req, responseHandler, exceptionHandler);
+    };
+    const middlewares = options.middlewares;
+    // middlewares chained before server initializes,
+    // so we can be sure about chain logic and just push
+    // middleware finalizer to complete the chain
+    if (middlewares.length) {
+      middlewares[middlewares.length - 1].next = _middlewareFinalizer;
+      // call first middleware to start chain
+      middlewares[0].process(request, res, exceptionHandler);
+    } else {
+      choosenService(request, responseHandler, exceptionHandler);
     }
   });
 };
@@ -149,6 +167,26 @@ utils.exceptionHandler = function (req, res, err) {
     res.writeHead(serverError.statusCode);
     res.end(JSON.stringify(serverError.serialize()));
   }
+};
+
+/**
+ * Alters request object and sets necessary properties
+ * about 404 eror to help middleware processing request.
+ *
+ * @param request request object to be altered
+ */
+utils.set404DetailsOnRequest = function (request) {
+  request.isNotFoundError = true;
+};
+
+/**
+ * Alters request object and sets necessary properties
+ * about 405 error to help middleware processing request.
+ *
+ * @param request requet object to be altered
+ */
+utils.set405DetailsOnRequest = function (request) {
+  request.isMethodNotAllowedError = true;
 };
 
 module.exports = utils;

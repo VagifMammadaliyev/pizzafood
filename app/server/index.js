@@ -37,9 +37,9 @@ server.use = function (middleware) {
       server._middlewares[server._middlewares.length - 1].next = function (
         request,
         responseWriter,
-        responseHandler
+        exceptionHandler
       ) {
-        middleware.process(request, responseWriter, responseHandler);
+        middleware.process(request, responseWriter, exceptionHandler);
       };
       // we do it here once, when application starts as opposed
       // to "middleware finalizer logic". Because that "logic"
