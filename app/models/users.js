@@ -53,6 +53,10 @@ users.User = function (name, email, address, rawPassword) {
     this.hashedPassword = hashPassword(password);
   };
 
+  this.checkPassword = function (password) {
+    return hashPassword(password) === this.hashedPassword;
+  };
+
   this.validate = function () {
     let errors = {};
 
@@ -110,6 +114,25 @@ users.User = function (name, email, address, rawPassword) {
     if (Object.keys(errors).length !== 0) {
       return new exc.InvalidData(errors);
     }
+  };
+
+  this.validateUniqueness = function () {
+    return new Promise((resolve, reject) => {
+      data.read('users', this.email, function (err, data) {
+        if (!err) {
+          reject(
+            new exc.InvalidData(
+              {
+                email: 'This e-mail address is taken',
+              },
+              400
+            )
+          );
+        } else {
+          resolve();
+        }
+      });
+    });
   };
 
   this.save = function () {

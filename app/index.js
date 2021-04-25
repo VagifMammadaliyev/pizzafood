@@ -12,6 +12,7 @@ app.init = function () {
       requireJson: false,
     })
   );
+  server.use(middlewares.auth());
   server.init(core.config);
 
   for (const service of services) {

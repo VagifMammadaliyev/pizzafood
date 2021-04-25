@@ -33,8 +33,8 @@ exc.MethodNotAllowed = function (badMethod) {
   };
 };
 
-exc.InvalidData = function (errors, strToArr = true) {
-  this.statusCode = 422;
+exc.InvalidData = function (errors, statusCode = 422, strToArr = true) {
+  this.statusCode = statusCode;
   this.errorData = {
     errors: null,
     messages: null,
