@@ -1,4 +1,5 @@
 const exc = require('../core/exceptions');
+const { tokens } = require('../models');
 const models = require('../models');
 const authExc = require('./errors/auth');
 
@@ -17,14 +18,12 @@ function register(req, res, exc) {
     user
       .validateUniqueness()
       .then(() => {
-        user
-          .save()
-          .then(() => {
-            res(201, user.toJson());
-          })
-          .catch((err) => exc(err));
+        return user.save();
       })
-      .catch((err) => exc(err));
+      .then(() => {
+        res(201, user.toJson());
+      })
+      .catch(exc);
   }
 }
 register.methods = ['POST'];
@@ -47,39 +46,42 @@ function _validateLogin(data) {
 function _authenticate(email, password) {
   const invalidCreds = new exc.InvalidData('Invalid login credentials', 400);
   return new Promise((resolve, reject) => {
-    const user = models.users
-      .load(email)
-      .then((user) => {
-        if (user.checkPassword(password)) {
-          resolve(user);
-        } else {
-          reject(invalidCreds);
-        }
-      })
-      .catch((err) => reject(invalidCreds));
+    const user = models.users.load(email).then((user) => {
+      if (user.checkPassword(password)) {
+        resolve(user);
+      } else {
+        reject(invalidCreds);
+      }
+    });
   });
 }
 
 // Login
 function login(req, res, exc) {
   const validationError = _validateLogin(req.data);
+  let token = null;
   if (validationError) {
     exc(validationError);
   } else {
     _authenticate(req.data.email, req.data.password)
       .then((user) => {
-        const token = new models.Token(user.email, true);
-        token
-          .save()
-          .then(() => {
-            res(200, {
-              token: token.toJson(),
-              user: user.toJson(),
-            });
-          })
-          .catch((err) => exc(err));
+        token = new models.Token(user.email, true);
+        token.user = user;
+        // save tokens to user, this will necessary for
+        // logout from all devices functionality
+        token.user.hashedLoginTokens.push(token.hashedToken);
+        return token.user.save(false);
       })
-      .catch((err) => exc(err));
+      .then(() => {
+        return token.save();
+      })
+      .then(() => {
+        res(200, {
+          token: token.toJson(),
+          user: token.user.toJson(),
+        });
+      })
+      .catch(exc);
   }
 }
 login.methods = ['POST'];
@@ -91,7 +93,7 @@ function profile(req, res, exc) {
     exc(new authExc.LoginRequired());
   } else {
     res(200, {
-      user: req.user,
+      user: req.user.toJson(),
     });
   }
 }
@@ -111,11 +113,35 @@ function logout(req, res, exc) {
           detail: 'Logged out',
         })
       )
-      .catch((err) => exc(err));
+      .catch(exc);
   }
 }
 logout.methods = ['POST'];
 logout.route = /^auth\/logout$/;
 
-const services = [register, login, profile, logout];
+// Logout all devices
+function logoutAll(req, res, exc) {
+  if (!req.user.isAuthenticated) {
+    exc(new authExc.LoginRequired());
+  } else {
+    tokens
+      .revokeMultipleByHash(req.user.hashedLoginTokens)
+      .then((revokeData) => {
+        req.user.hashedLoginTokens = [];
+        req.user.save(false);
+        return Promise.resolve(revokeData);
+      })
+      .then((revokeData) => {
+        res(200, {
+          detail: `Logged out from ${revokeData.revoked} devices`,
+          numbers: revokeData,
+        });
+      })
+      .catch(exc);
+  }
+}
+logoutAll.methods = ['POST'];
+logoutAll.route = /^auth\/logout-all$/;
+
+const services = [register, login, profile, logout, logoutAll];
 module.exports = services;
