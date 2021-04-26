@@ -9,6 +9,9 @@ users.load = function (email) {
     data.read('users', email, function (err, data) {
       if (!err && data) {
         const user = new users.User(data.name, data.email, data.address);
+        if (data.hashedLoginTokens) {
+          user.hashedLoginTokens = data.hashedLoginTokens;
+        }
         user.hashedPassword = data.hashedPassword;
         resolve(user);
       } else {
@@ -47,10 +50,15 @@ users.User = function (name, email, address, rawPassword) {
   this.name = name;
   this.address = address;
   this.hashedPassword = null;
+  this.hashedLoginTokens = [];
   this._password = rawPassword; // this is needed on form submission validation
 
   this.setPassword = function (password) {
     this.hashedPassword = hashPassword(password);
+  };
+
+  this.checkPassword = function (password) {
+    return hashPassword(password) === this.hashedPassword;
   };
 
   this.validate = function () {
@@ -112,16 +120,47 @@ users.User = function (name, email, address, rawPassword) {
     }
   };
 
-  this.save = function () {
+  this.validateUniqueness = function () {
     return new Promise((resolve, reject) => {
-      this.setPassword(this._password);
-      data.create('users', this.email, this.prepare(), function (err) {
+      data.read('users', this.email, function (err, data) {
         if (!err) {
-          resolve();
+          reject(
+            new exc.InvalidData(
+              {
+                email: 'This e-mail address is taken',
+              },
+              400
+            )
+          );
         } else {
-          reject(err);
+          resolve();
         }
       });
+    });
+  };
+
+  this.save = function (creating = true) {
+    return new Promise((resolve, reject) => {
+      if (creating) {
+        this.setPassword(this._password);
+      }
+      if (creating) {
+        data.create('users', this.email, this.prepare(), function (err) {
+          if (!err) {
+            resolve();
+          } else {
+            reject(err);
+          }
+        });
+      } else {
+        data.update('users', this.email, this.prepare(), function (err) {
+          if (!err) {
+            resolve();
+          } else {
+            reject(err);
+          }
+        });
+      }
     });
   };
 
@@ -139,6 +178,7 @@ users.User = function (name, email, address, rawPassword) {
       email: this.email,
       address: this.address,
       hashedPassword: this.hashedPassword,
+      hashedLoginTokens: this.hashedLoginTokens,
     };
   };
 };

@@ -46,6 +46,10 @@ utils.cookRequestData = function (method, parsedUrl, headers, content) {
     // middlware helping properties
     isNotFoundError: false,
     isMethodNotAllowedError: false,
+    // auth related
+    user: {
+      isAuthenticated: false,
+    },
   };
 };
 

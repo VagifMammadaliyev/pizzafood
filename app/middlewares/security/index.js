@@ -4,10 +4,10 @@ var security = {};
 
 security.AcceptJsonOnly = function () {
   this.process = function (req, res, e) {
-    if (!req.isJson) {
+    if (!req.isJson && req.data) {
       e(new exc.UnsupportedMediaType('application/json'));
     } else {
-      this.next(req, res, exc);
+      this.next(req, res, e);
     }
   };
 };
@@ -17,7 +17,7 @@ security.RequireOnlyJson = function () {
     if (req.headers.accept != 'application/json') {
       e(new exc.NotAcceptable('application/json'));
     } else {
-      this.next(req, res, exc);
+      this.next(req, res, e);
     }
   };
 };
@@ -30,7 +30,7 @@ security.Common = function () {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Feature-Policy', "'none'");
-    this.next(req, res, exc);
+    this.next(req, res, e);
   };
 };
 

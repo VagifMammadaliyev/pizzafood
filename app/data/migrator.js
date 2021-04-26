@@ -8,7 +8,7 @@ const utils = require('./utils');
 
 // Just add collection names to this array
 // and then run "make migrate" from your shell
-const collectionNames = ['users', 'pizzas'];
+const collectionNames = ['users', 'pizzas', 'tokens'];
 
 /**
  * Just check for each collection name

@@ -2,12 +2,14 @@ const path = require('path');
 
 var config = {
   prod: {
-    httpPort: process.env.PIZAAFOOD_HTTP_PORT,
-    httpsPort: process.env.PIZAAFOOD_HTTPS_PORT,
-    dataDirectory: process.env.PIZAAFOOD_DATADIR,
-    secretKey: process.env.PIZAAFOOD_SECRET_KEY,
+    debug: false,
+    httpPort: process.env.PIZZAFOOD_HTTP_PORT,
+    httpsPort: process.env.PIZZAFOOD_HTTPS_PORT,
+    dataDirectory: process.env.PIZZAFOOD_DATADIR,
+    secretKey: process.env.PIZZAFOOD_SECRET_KEY,
   },
   dev: {
+    debug: true,
     httpPort: 80,
     httpsPort: false,
     dataDirectory: path.join(__dirname, '../.db'),

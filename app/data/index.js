@@ -68,7 +68,7 @@ data.update = function (
   fs.open(entityFilename, 'r+', function (err, fd) {
     if (!err && fd) {
       var entityDataString = JSON.stringify(entityData);
-      fs.truncate(fd, 0, function (err) {
+      fs.ftruncate(fd, 0, function (err) {
         if (!err) {
           fs.writeFile(fd, entityDataString, function (err) {
             if (!err) {
