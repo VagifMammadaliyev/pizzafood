@@ -1,5 +1,5 @@
 const exc = require('../core/exceptions');
-const { tokens } = require('../models');
+const tokens = require('../models/tokens');
 const models = require('../models');
 const authExc = require('./errors/auth');
 
