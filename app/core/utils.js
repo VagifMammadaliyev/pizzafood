@@ -34,6 +34,17 @@ utils.getRandomString = function (length) {
   return result.join('');
 };
 
+/**
+ * Dummy UUID generator
+ * @returns string
+ */
+utils.UUID = function () {
+  return (
+    `${utils.getRandomString(4)}-${utils.getRandomString(4)}-` +
+    `${utils.getRandomString(4)}-${utils.getRandomString(4)}`
+  );
+};
+
 utils.time = {};
 utils.time.sec = 1000;
 utils.time.min = 60 * utils.time.sec;
