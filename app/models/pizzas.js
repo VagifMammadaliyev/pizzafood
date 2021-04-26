@@ -2,13 +2,15 @@ var pizzas = {};
 
 // We will hardcode this models' instances
 // into system for simplicity's sake
-pizzas.Pizza = function (title, priceInUsd, stockCount) {
+pizzas.Pizza = function (id, title, priceInUsd, stockCount) {
+  this.id = id;
   this.title = title;
   this.priceInUsd = priceInUsd;
   this.stockCount = stockCount;
 
   this.toJson = function () {
     return {
+      id: this.id,
       title: this.title,
       price: {
         amount: this.priceInUsd,
@@ -26,19 +28,16 @@ pizzas.Pizza = function (title, priceInUsd, stockCount) {
   };
 };
 
-pizzas.db = [];
+pizzas.db = [
+  new pizzas.Pizza(1, 'Pepperoni Pizza', 23, 2),
+  new pizzas.Pizza(2, 'Margherita Pizza', 12, 4),
+  new pizzas.Pizza(3, 'Hawaiian Pizza', 16, 1),
+  new pizzas.Pizza(4, 'Buffalo Pizza', 32, 3),
+  new pizzas.Pizza(5, 'Meat Pizza', 44, 1),
+  new pizzas.Pizza(6, 'Cheese Pizza', 9, 5),
+];
 pizzas.loadPizzas = function () {
   return new Promise((resolve, reject) => {
-    if (pizzas.db.length === 0) {
-      pizzas.db = [
-        new pizzas.Pizza('Pepperoni Pizza', 23, 2),
-        new pizzas.Pizza('Margherita Pizza', 12, 4),
-        new pizzas.Pizza('Hawaiian Pizza', 16, 1),
-        new pizzas.Pizza('Buffalo Pizza', 32, 3),
-        new pizzas.Pizza('Meat Pizza', 44, 1),
-        new pizzas.Pizza('Cheese Pizza', 9, 5),
-      ];
-    }
     resolve(pizzas.db);
   });
 };
