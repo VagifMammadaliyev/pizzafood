@@ -1,3 +1,5 @@
+const exc = require('../data/exceptions');
+
 var pizzas = {};
 
 // We will hardcode this models' instances
@@ -36,9 +38,50 @@ pizzas.db = [
   new pizzas.Pizza(5, 'Meat Pizza', 44, 1),
   new pizzas.Pizza(6, 'Cheese Pizza', 9, 5),
 ];
+
 pizzas.loadPizzas = function () {
   return new Promise((resolve, reject) => {
     resolve(pizzas.db);
+  });
+};
+
+pizzas.loadById = function (id) {
+  return new Promise((resolve, reject) => {
+    pizzas
+      .loadPizzas()
+      .then((loadedPizzas) => {
+        let foundPizza = null;
+        for (const pizza of loadedPizzas) {
+          if (pizza.id === id) {
+            foundPizza = pizza;
+            break;
+          }
+        }
+        if (foundPizza) {
+          resolve(foundPizza);
+        } else {
+          reject(new exc.DataError(`Cannot find pizza with id=${id}`));
+        }
+      })
+      .catch(reject);
+  });
+};
+
+pizzas.loadByIds = function (ids) {
+  return new Promise((resolve, reject) => {
+    if (!ids.length) {
+      reject(new exc.DataError(`Emtpy ID array provided`));
+    }
+    let idsCount = ids.length;
+    let loadedPizzas = [];
+    for (const id of ids) {
+      pizzas.loadById(id).then((pizza) => {
+        loadedPizzas.push(pizza);
+        if (idsCount === loadedPizzas.length) {
+          resolve(loadedPizzas);
+        }
+      });
+    }
   });
 };
 
