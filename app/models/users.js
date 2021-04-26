@@ -1,6 +1,7 @@
 const hashPassword = require('../core/utils').hashString;
 const exc = require('../core/exceptions');
 const data = require('../data');
+const carts = require('../models/carts');
 
 var users = {};
 
@@ -11,6 +12,9 @@ users.load = function (email) {
         const user = new users.User(data.name, data.email, data.address);
         if (data.hashedLoginTokens) {
           user.hashedLoginTokens = data.hashedLoginTokens;
+        }
+        if (data.cartId) {
+          user.cartId = data.cartId;
         }
         user.hashedPassword = data.hashedPassword;
         resolve(user);
@@ -51,6 +55,8 @@ users.User = function (name, email, address, rawPassword) {
   this.address = address;
   this.hashedPassword = null;
   this.hashedLoginTokens = [];
+  this.cartId = null;
+  this.cart = null;
   this._password = rawPassword; // this is needed on form submission validation
 
   this.setPassword = function (password) {
@@ -179,7 +185,38 @@ users.User = function (name, email, address, rawPassword) {
       address: this.address,
       hashedPassword: this.hashedPassword,
       hashedLoginTokens: this.hashedLoginTokens,
+      cartId: this.cartId,
     };
+  };
+
+  this.getCart = function () {
+    return new Promise((resolve, reject) => {
+      if (this.cartId) {
+        if (this.cart) {
+          resolve(this.cart);
+        } else {
+          return carts
+            .load(this.cartId)
+            .then((cart) => {
+              this.cart = cart;
+              resolve(this.cart);
+            })
+            .catch(reject);
+        }
+      } else {
+        const cart = new carts.Cart();
+        cart
+          .save()
+          .then(() => {
+            this.cartId = cart.uuid;
+            return this.save(false);
+          })
+          .then(() => {
+            resolve(cart);
+          })
+          .catch(reject);
+      }
+    });
   };
 };
 
