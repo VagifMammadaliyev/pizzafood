@@ -34,11 +34,29 @@ security.Common = function () {
   };
 };
 
+security.CORS = function () {
+  this.process = function (req, res, e) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    if (req.method === 'OPTIONS') {
+      // this preflight request is made by most
+      // browsers in order to check access control headers
+      // before making the actual request,
+      // so just respond with 200 and attached headers
+      res.writeHead(200);
+      res.end();
+    } else {
+      this.next(req, res, e);
+    }
+  };
+};
+
 function secure(options) {
   if (!options) {
     options = {};
   }
-  let middlewares = [new security.Common()];
+  let middlewares = [new security.Common(), new security.CORS()];
   if (options.acceptJson === true) {
     middlewares.push(new security.AcceptJsonOnly());
   }
