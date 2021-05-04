@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Purchase new pizza</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+  </head>
+  <body>
+    <section>
+      <div class="product">
+        <div class="description">
+          <h3>Example pizza</h3>
+        </div>
+      </div>
+      <button type="button" id="checkout-button">Checkout</button>
+    </section>
+  </body>
+  <script type="text/javascript">
+    var stripe = Stripe(
+      'pk_test_51IimZiGO3n9LlYIe6KMji74F6Oc3ge1OH3lHfX5Gb6tkpjImSZ7vIijWLpwWkDtZfE6vkW19cSbroM2XFDHr1CZR00dTvBUMvr'
+    );
+    var checkoutButton = document.getElementById('checkout-button');
+
+    checkoutButton.addEventListener('click', function () {
+      fetch('http://localhost/cart/checkout', {
+        method: 'POST',
+        headers: {
+          Authorization:
+            'OjpQGPnVZQXt817qpRL2dEXYVqnRWT8BbBhiHOTh1Y39HOn7EeXqMe6Dfh4uWW7j',
+        },
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (session) {
+          return stripe.redirectToCheckout({ sessionId: session.id });
+        })
+        .then(function (result) {
+          if (result.error) {
+            alert(result.error.message);
+          }
+        })
+        .catch(function (error) {
+          console.error('Error:', error);
+        });
+    });
+  </script>
+</html>

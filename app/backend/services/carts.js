@@ -1,6 +1,7 @@
 const authExc = require('./errors/auth');
 const exc = require('../core/exceptions');
-const { pizzas } = require('../models');
+const pizzas = require('../models/pizzas');
+const carts = require('../models/carts');
 
 function _validateCartAddition(data) {
   if (!data) {
@@ -102,5 +103,56 @@ function cart(req, res, exc) {
 cart.methods = ['GET', 'POST', 'DELETE'];
 cart.route = /^cart$/;
 
-const services = [cart];
+function checkout(req, res, exc) {
+  if (!req.user.isAuthenticated) {
+    exc(new authExc.LoginRequired());
+  } else {
+    req.user
+      .getCart()
+      .then((cart) => {
+        return cart.checkout();
+      })
+      .then((checkoutResponse) => {
+        const checkoutData = checkoutResponse;
+        res(checkoutResponse.statusCode, checkoutData);
+      })
+      .catch(exc);
+  }
+}
+checkout.methods = ['POST'];
+checkout.route = /^cart\/checkout$/;
+
+function checkoutResult(req, res, exc) {
+  res(200, {
+    detail: 'Completed',
+    result: req.args.result,
+  });
+}
+checkoutResult.methods = ['GET'];
+checkoutResult.route = /^cart\/checkout\/(?<result>(ok|fail))$/;
+
+function checkoutHook(req, res, exc) {
+  // we will skip validating that requests came from Stripe (signing etc.)
+  let event = req.data;
+  if (event) {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      carts
+        .loadByPaymentIntent(session.payment_intent)
+        .then((cart) => {
+          cart.fulfillCheckout(session);
+          res(200, { detail: 'OK' });
+        })
+        .catch(exc);
+    } else {
+      res(200, { detail: 'Ignored event' });
+    }
+  } else {
+    res(400, { detail: 'No event' });
+  }
+}
+checkoutHook.methods = ['POST'];
+checkoutHook.route = /^cart\/checkout\/payment\-hook$/;
+
+const services = [cart, checkout, checkoutResult, checkoutHook];
 module.exports = services;
