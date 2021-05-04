@@ -38,17 +38,12 @@ stripe.Stripe = function () {
     );
   };
 
-  this.createSession = function (price, quantity) {
+  this.createSession = function (lineItems) {
     const requestData = {
-      cancel_url: 'http://localhost:80/fail',
-      success_url: 'http://localhost:80/ok',
+      cancel_url: `${config.hostname}${config.stripe.cancelUrl}`,
+      success_url: `${config.hostname}${config.stripe.successUrl}`,
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: price.id,
-          quantity: quantity,
-        },
-      ],
+      line_items: lineItems,
       mode: 'payment',
     };
     return requests.post(
