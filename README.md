@@ -30,6 +30,10 @@ But I have decided to publish it here as a showcase.
 
 ## How to's
 
+On how to use API refer to Postman docs:
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/7314227-5c2542c6-7e6c-41af-97dd-be0a4828ac6a?action=collection%2Ffork&collection-url=entityId%3D7314227-5c2542c6-7e6c-41af-97dd-be0a4828ac6a%26entityType%3Dcollection%26workspaceId%3Dc09ab4aa-5613-4e7f-97dc-5ed7856c1269#?env%5BPizzafood%20Development%5D=W3sia2V5IjoiYmFzZVVybCIsInZhbHVlIjoiaHR0cDovL2xvY2FsaG9zdCIsImVuYWJsZWQiOnRydWV9LHsia2V5IjoibG9naW5Ub2tlbiIsInZhbHVlIjoiIiwiZW5hYmxlZCI6dHJ1ZX1d)
+
 ### Starting application
 
 To start the server run `make serve` from the `app/` directory.
