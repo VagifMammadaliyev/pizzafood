@@ -11,6 +11,7 @@ carts.load = function (uuid) {
     data.read('carts', uuid, function (err, data) {
       if (!err && data) {
         const cart = new carts.Cart();
+        cart.userEmail = data.userEmail;
         cart.pizzas = data.pizzas;
         cart.uuid = uuid;
         cart.checkoutData = data.checkoutData;
@@ -35,6 +36,7 @@ carts.loadByPaymentIntent = function (pi) {
     data.find('carts', predicator, function (err, data) {
       if (!err && data) {
         const cart = new carts.Cart();
+        cart.userEmail = data.userEmail;
         cart.pizzas = data.pizzas;
         cart.uuid = data.uuid;
         cart.checkoutData = data.checkoutData;
@@ -47,6 +49,7 @@ carts.loadByPaymentIntent = function (pi) {
 };
 
 carts.Cart = function () {
+  this.userEmail = null;
   this.uuid = null;
   this.pizzas = [];
   this.loadedPizzas = [];
@@ -131,6 +134,7 @@ carts.Cart = function () {
 
   this.prepare = function () {
     return {
+      userEmail: this.userEmail,
       uuid: this.uuid,
       pizzas: this.pizzas,
       checkoutData: this.checkoutData,
