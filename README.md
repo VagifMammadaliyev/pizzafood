@@ -30,9 +30,39 @@ But I have decided to publish it here as a showcase.
 
 ## How to's
 
+### Starting application
+
 To start the server run `make serve` from the `app/` directory.
 
-## Very micro framework
+### Stripe checkout
+
+In order to successfully checkout you must edit `frontend/test_checkout.html` file a little bit.
+
+1. Replace stripe public key on **line 21** with yours.
+2. Replace `Authorization` header value in **line 30** with what you get after loggging in using the API.
+3. Run `stripe listen --forward-to localhost/cart/checkout/payment-hook` in your terminal.
+4. Open `frontend/test_checkout.html` in your browser and click "Checkout" button.
+5. Enter test card information (4242 4242 4242 4242 with any future date and any security code) and submit.
+
+You should be redirected to a URL with a JSON response like `{"detail":"Completed","result":"ok"}`.
+Your cart must be empty at this point and you should receive an email with receipt.
+
+In order for stripe integration work make sure you have set Stripe keys in your environment.
+To set keys before running `make serve` to start the API server, write down this to your terimanl:
+
+```sh
+# change to backend directory
+cd app/backend
+
+# set env vars
+export STRIPE_TEST_SECRET_KEY=<YOUR_STRIPE_SECRET_KEY>
+export STRIPE_TEST_PUBLIC_KEY=<YOUR_STRIPE_PUBLIC_KEY>
+
+# now you can run this
+make serve
+```
+
+## Additional: Very micro framework
 
 In order to easily complete the task, I've decided to put some effort and implement
 a micro framework I could use for purposes of this task.
