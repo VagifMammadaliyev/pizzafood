@@ -18,6 +18,10 @@ var config = {
       secretKey: process.env.STRIPE_LIVE_SECRET_KEY,
       publicKey: process.env.STRIPE_LIVE_PUBLIC_KEY,
     },
+    mailgun: {
+      apiKey: process.env.MAILGUN_API_KEY,
+      domainName: process.env.MAILGUN_DOMAIN_NAME,
+    },
   },
   dev: {
     debug: true,
@@ -36,6 +40,10 @@ var config = {
       cancelUrl: '/cart/checkout/fail',
       secretKey: process.env.STRIPE_TEST_SECRET_KEY,
       publicKey: process.env.STRIPE_TEST_PUBLIC_KEY,
+    },
+    mailgun: {
+      apiKey: process.env.MAILGUN_API_KEY,
+      domainName: process.env.MAILGUN_DOMAIN_NAME,
     },
   },
 };
