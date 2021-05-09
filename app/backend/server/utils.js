@@ -100,7 +100,7 @@ utils.processRequest = function (req, res, options) {
     } else if (
       Array.isArray(allowedMethods) &&
       allowedMethods.length &&
-      allowedMethods.indexOf(request.method) < 0
+      ['OPTIONS', ...allowedMethods].indexOf(request.method) < 0
     ) {
       utils.set405DetailsOnRequest(request);
       choosenService = function (request, res, exc) {

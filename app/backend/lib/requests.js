@@ -11,11 +11,7 @@ requests.Response = function (statusCode, content, headers) {
   this.headers = headers;
 
   this.json = function () {
-    try {
-      this.json = JSON.parse(this.content);
-    } catch {
-      this.json = null;
-    }
+    return JSON.parse(this.content);
   };
 };
 
@@ -41,18 +37,16 @@ requests.make = function (url, method, payload, headers) {
   if (parsedURL.searchParams.toString().length > 0) {
     pathname += parsedURL.searchParams.toString();
   }
-  let payloadData = null;
-  try {
-    payloadData = JSON.stringify(payload);
-  } catch {
-    payloadData = null;
-  }
-  if (!payloadData) {
-    payloadData = querystring.stringify(payload);
-  }
-
-  const payloadLength = Buffer.byteLength(payloadData);
   if (!headers) headers = {};
+  let payloadData = null;
+  if (headers['Content-Type'] === 'application/json') {
+    payloadData = JSON.stringify(payload);
+  } else if (headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+    payloadData = querystring.stringify(payload);
+  } else {
+    payloadData = payload;
+  }
+  const payloadLength = Buffer.byteLength(payloadData);
   headers['Content-Length'] = payloadLength;
   const requestDetails = {
     protocol: parsedURL.protocol,
