@@ -2,6 +2,7 @@ const pizzas = require('../models/pizzas');
 const utils = require('../core/utils');
 const data = require('../data');
 const stripe = require('../lib/stripe');
+const mailgun = require('../lib/mailgun');
 const exc = require('../core/exceptions');
 
 var carts = {};
@@ -11,6 +12,7 @@ carts.load = function (uuid) {
     data.read('carts', uuid, function (err, data) {
       if (!err && data) {
         const cart = new carts.Cart();
+        cart.userEmail = data.userEmail;
         cart.pizzas = data.pizzas;
         cart.uuid = uuid;
         cart.checkoutData = data.checkoutData;
@@ -35,6 +37,7 @@ carts.loadByPaymentIntent = function (pi) {
     data.find('carts', predicator, function (err, data) {
       if (!err && data) {
         const cart = new carts.Cart();
+        cart.userEmail = data.userEmail;
         cart.pizzas = data.pizzas;
         cart.uuid = data.uuid;
         cart.checkoutData = data.checkoutData;
@@ -47,6 +50,7 @@ carts.loadByPaymentIntent = function (pi) {
 };
 
 carts.Cart = function () {
+  this.userEmail = null;
   this.uuid = null;
   this.pizzas = [];
   this.loadedPizzas = [];
@@ -131,14 +135,26 @@ carts.Cart = function () {
 
   this.prepare = function () {
     return {
+      userEmail: this.userEmail,
       uuid: this.uuid,
       pizzas: this.pizzas,
       checkoutData: this.checkoutData,
     };
   };
 
-  this.fulfillCheckout = function (sessionData) {
-    console.log('Fulfilling.');
+  this.fulfillCheckout = function (user, sessionData) {
+    let cart = this;
+    const paymentAmount = sessionData.amount_total / 100;
+    return mailgun
+      .send(
+        cart.userEmail,
+        'Receipt',
+        `You have paid \$ ${paymentAmount.toFixed(2)}`
+      )
+      .then(() => {
+        cart.pizzas = [];
+        return cart.save(false);
+      });
   };
   this.setCheckoutData = function (key, data) {
     if (!this.checkoutData || typeof this.checkoutData != 'object') {

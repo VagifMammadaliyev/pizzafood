@@ -140,7 +140,9 @@ function checkoutHook(req, res, exc) {
       carts
         .loadByPaymentIntent(session.payment_intent)
         .then((cart) => {
-          cart.fulfillCheckout(session);
+          return cart.fulfillCheckout(req.user, session);
+        })
+        .then(() => {
           res(200, { detail: 'OK' });
         })
         .catch(exc);

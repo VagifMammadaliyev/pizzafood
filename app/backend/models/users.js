@@ -205,6 +205,7 @@ users.User = function (name, email, address, rawPassword) {
         }
       } else {
         const cart = new carts.Cart();
+        cart.userEmail = this.email;
         cart
           .save()
           .then(() => {
