@@ -12,7 +12,6 @@ mailgun._constructAuthHeader = function (apiKey) {
 mailgun.send = function (email, subject, message) {
   const domainName = config.mailgun.domainName;
   const apiKey = config.mailgun.apiKey;
-  console.log(apiKey);
   return requests.post(
     `https://api.mailgun.net/v3/${domainName}/messages`,
     utils.jsonToFormEncoded({

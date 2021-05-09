@@ -2,6 +2,7 @@ const pizzas = require('../models/pizzas');
 const utils = require('../core/utils');
 const data = require('../data');
 const stripe = require('../lib/stripe');
+const mailgun = require('../lib/mailgun');
 const exc = require('../core/exceptions');
 
 var carts = {};
@@ -141,8 +142,19 @@ carts.Cart = function () {
     };
   };
 
-  this.fulfillCheckout = function (sessionData) {
-    console.log('Fulfilling.');
+  this.fulfillCheckout = function (user, sessionData) {
+    let cart = this;
+    const paymentAmount = sessionData.amount_total / 100;
+    return mailgun
+      .send(
+        cart.userEmail,
+        'Receipt',
+        `You have paid \$ ${paymentAmount.toFixed(2)}`
+      )
+      .then(() => {
+        cart.pizzas = [];
+        return cart.save(false);
+      });
   };
   this.setCheckoutData = function (key, data) {
     if (!this.checkoutData || typeof this.checkoutData != 'object') {
