@@ -62,6 +62,22 @@ export STRIPE_TEST_PUBLIC_KEY=<YOUR_STRIPE_PUBLIC_KEY>
 make serve
 ```
 
+### Mailgun testing
+
+In order to receive receipt e-mails after checkout process you must add some environment variables:
+
+```sh
+# change to backend directory
+cd app/backend
+
+# set env vars
+export MAILGUN_API_KEY=<YOUR_MAILGUN_API_KEY>
+export MAILGUN_DOMAIN_NAME=<YOUR_MAILGUN_DOMAIN_NAME>
+
+# now you can run this
+make serve
+```
+
 ## Additional: Very micro framework
 
 In order to easily complete the task, I've decided to put some effort and implement
